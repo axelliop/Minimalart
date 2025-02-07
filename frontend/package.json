@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "tailwind": "tailwindcss -i ./src/input.css -o ./src/output.css --watch",
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.3",
