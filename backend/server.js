@@ -4,12 +4,24 @@ const cors = require('cors');
 
 const app = express();
 app.use(express.json());
+
+// Configuración de CORS
+const allowedOrigins = [
+    "http://localhost:5173", // Para desarrollo local
+    "https://minimalart-delta.vercel.app" // URL del frontend en producción
+];
+
 app.use(cors({
-    origin: "https://minimalart-production.up.railway.app/", // Reemplazá con la URL de tu frontend en Vercel
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     methods: "GET,POST",
     allowedHeaders: "Content-Type"
 }));
-
 
 // Ruta de prueba para verificar que el servidor está corriendo
 app.get('/', (req, res) => {
