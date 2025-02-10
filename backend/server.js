@@ -48,8 +48,11 @@ app.post('/run-test', async (req, res) => {
         console.log(`Título de la página: ${title}`);
 
         // Obtener todos los elementos <h2> y extraer su texto
-        const h2Elements = await page.$$eval('h2', elements => elements.map(el => el.textContent.trim()));
-        console.log("Elementos H2 encontrados:", h2Elements);
+// Reemplaza esta línea en el `try` antes del `res.json(...)`
+const h2Elements = await page.$$eval('h2', elements => elements.map(el => el.textContent.trim())) || [];
+
+// Y asegurate de que el `catch` también devuelva `h2Elements` vacío:
+res.status(500).json({ success: false, error: error.message, h2Elements: [] });
 
         await browser.close();
 

@@ -44,7 +44,9 @@ export default function App() {
                     body: JSON.stringify({ url, expectedProducts: expectedProducts || "0" }),
                 });
                 const data = await response.json();
-                const filteredH2 = (data.h2Elements || []).filter(h2 => !excludedH2s.includes(h2));
+             // Modifica esta línea en `runTests`
+const filteredH2 = (data.h2Elements || []).filter(h2 => !excludedH2s.includes(h2));
+
                 newResults.push({ ...data, h2Elements: filteredH2, index: i });
 
                 if (expectedProducts && filteredH2.length !== parseInt(expectedProducts)) {
