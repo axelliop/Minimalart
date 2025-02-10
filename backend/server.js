@@ -6,11 +6,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Ruta principal para verificar si el servidor está activo
-app.get('/', (req, res) => {
-    res.send('Servidor funcionando correctamente');
-});
-
 app.post('/run-test', async (req, res) => {
     const { url, expectedProducts } = req.body;
     if (!url) return res.status(400).json({ error: 'URL is required' });
@@ -35,3 +30,4 @@ app.post('/run-test', async (req, res) => {
 });
 
 app.listen(5000, () => console.log('Server running on port 5000'));
+
