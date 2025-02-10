@@ -4,68 +4,34 @@ const cors = require('cors');
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
-// Configuración de CORS
-const allowedOrigins = [
-    "http://localhost:5173", // Para desarrollo local
-    "https://minimalart-delta.vercel.app" // URL del frontend en producción
-];
-
-app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
-    methods: "GET,POST",
-    allowedHeaders: "Content-Type"
-}));
-
-// Ruta de prueba para verificar que el servidor está corriendo
+// Ruta principal para verificar si el servidor está activo
 app.get('/', (req, res) => {
     res.send('Servidor funcionando correctamente');
 });
 
 app.post('/run-test', async (req, res) => {
     const { url, expectedProducts } = req.body;
+    if (!url) return res.status(400).json({ error: 'URL is required' });
 
-    if (!url) {
-        return res.status(400).json({ success: false, error: 'URL is required' });
-    }
-
-    let browser;
     try {
-        console.log("Iniciando navegador Playwright...");
-        browser = await chromium.launch();
+        const browser = await chromium.launch();
         const page = await browser.newPage();
-        console.log(`Accediendo a la URL: ${url}`);
         await page.goto(url);
 
         // Obtener el título de la página
         const title = await page.title();
-        console.log(`Título de la página: ${title}`);
 
         // Obtener todos los elementos <h2> y extraer su texto
-// Reemplaza esta línea en el `try` antes del `res.json(...)`
-const h2Elements = await page.$$eval('h2', elements => elements.map(el => el.textContent.trim())) || [];
-
-// Y asegurate de que el `catch` también devuelva `h2Elements` vacío:
-res.status(500).json({ success: false, error: error.message, h2Elements: [] });
+        const h2Elements = await page.$$eval('h2', elements => elements.map(el => el.textContent.trim()));
 
         await browser.close();
 
         res.json({ success: true, title, expectedProducts, h2Elements });
     } catch (error) {
-        console.error("Error en el backend:", error);
-        
-        if (browser) {
-            await browser.close();
-        }
-
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.listen(5000, () => console.log('🚀 Server running on port 5000'));
+app.listen(5000, () => console.log('Server running on port 5000'));

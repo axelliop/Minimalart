@@ -38,7 +38,7 @@ export default function App() {
         for (const [i, { url, expectedProducts }] of tests.entries()) {
             if (!url) continue;
             try {
-                const response = await fetch(`${API_URL}/run-test`, {
+                const response = await fetch(`${API_URL}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ url, expectedProducts: expectedProducts || "0" }),
