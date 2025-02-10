@@ -31,7 +31,7 @@ export default function App() {
         setResults([]);
         setAlertMessages([]);
 
-        const API_URL = "https://minimalart-production.up.railway.app/";
+        const API_URL = "https://minimalart-production.up.railway.app";
         const newResults = [];
         const newAlerts = [];
 
