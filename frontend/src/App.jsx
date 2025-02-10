@@ -7,6 +7,7 @@ export default function App() {
     const [results, setResults] = useState([]);
     const [alertMessages, setAlertMessages] = useState([]);
     const [loading, setLoading] = useState(false);
+    
 
     const excludedH2s = [
         "Ingresá a tu cuenta",
@@ -30,6 +31,7 @@ export default function App() {
         setResults([]);
         setAlertMessages([]);
 
+        const API_URL = "https://minimalart-production.up.railway.app/";
         const newResults = [];
         const newAlerts = [];
 
@@ -39,7 +41,7 @@ export default function App() {
             if (!url) continue;
 
             try {
-                const response = await fetch("http://localhost:5000/run-test", {
+                const response = await fetch(`${API_URL}/run-test`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ url, expectedProducts }),
