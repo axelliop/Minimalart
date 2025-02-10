@@ -16,37 +16,37 @@ export default function App() {
     ];
 
     const handleInputChange = (index, field, value) => {
-        setTests((prevTests) => {
-            const newTests = [...prevTests];
-            newTests[index][field] = value;
-            return newTests;
-        });
+        const newTests = [...tests];
+        newTests[index][field] = value;
+        setTests(newTests);
     };
 
     const addTest = () => {
-        setTests((prevTests) => [...prevTests, { url: "", expectedProducts: "" }]);
+        setTests([...tests, { url: "", expectedProducts: "" }]);
     };
 
     const runTests = async () => {
         setLoading(true);
         setResults([]);
         setAlertMessages([]);
-        const API_URL = "https://minimalart-production.up.railway.app";
+
         const newResults = [];
         const newAlerts = [];
 
-        for (const [i, { url, expectedProducts }] of tests.entries()) {
+        for (let i = 0; i < tests.length; i++) {
+            const { url, expectedProducts } = tests[i];
+
             if (!url) continue;
+
             try {
-                const response = await fetch(`${API_URL}`, {
+                const response = await fetch("http://localhost:5000/run-test", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url, expectedProducts: expectedProducts || "0" }),
+                    body: JSON.stringify({ url, expectedProducts }),
                 });
-                const data = await response.json();
-             // Modifica esta línea en `runTests`
-const filteredH2 = (data.h2Elements || []).filter(h2 => !excludedH2s.includes(h2));
 
+                const data = await response.json();
+                const filteredH2 = data.h2Elements.filter(h2 => !excludedH2s.includes(h2));
                 newResults.push({ ...data, h2Elements: filteredH2, index: i });
 
                 if (expectedProducts && filteredH2.length !== parseInt(expectedProducts)) {
@@ -56,6 +56,7 @@ const filteredH2 = (data.h2Elements || []).filter(h2 => !excludedH2s.includes(h2
                     });
                 }
 
+                // Nueva prueba: Verificar si la URL es accesible
                 if (!data.success) {
                     newAlerts.push({
                         index: i,
@@ -64,7 +65,6 @@ const filteredH2 = (data.h2Elements || []).filter(h2 => !excludedH2s.includes(h2
                 }
             } catch (error) {
                 console.error("Error en el test ejecutado:", error);
-                newAlerts.push({ index: i, message: `❌ Error inesperado al probar la URL ${url}.` });
             }
         }
 
@@ -80,29 +80,60 @@ const filteredH2 = (data.h2Elements || []).filter(h2 => !excludedH2s.includes(h2
 
     return (
         <div className="container py-4">
-            <motion.h1 className="text-center mb-4" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <motion.h1
+                className="text-center mb-4"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
                 Automatización AeC - Minimalart
             </motion.h1>
 
             {tests.map((test, index) => (
-                <motion.div key={index} className="card p-3 mb-3 shadow-sm" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, delay: index * 0.1 }}>
+                <motion.div 
+                    key={index} 
+                    className="card p-3 mb-3 shadow-sm" 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
                     <div className="mb-2">
-                        <input type="text" placeholder="Ingresar URL" value={test.url} onChange={(e) => handleInputChange(index, "url", e.target.value)} className="form-control" />
+                        <input
+                            type="text"
+                            placeholder="Ingresar URL"
+                            value={test.url}
+                            onChange={(e) => handleInputChange(index, "url", e.target.value)}
+                            className="form-control"
+                        />
                     </div>
                     <div>
-                        <input type="number" placeholder="Productos esperados" value={test.expectedProducts} onChange={(e) => handleInputChange(index, "expectedProducts", e.target.value)} className="form-control" />
+                        <input
+                            type="number"
+                            placeholder="Productos esperados"
+                            value={test.expectedProducts}
+                            onChange={(e) => handleInputChange(index, "expectedProducts", e.target.value)}
+                            className="form-control"
+                        />
                     </div>
                 </motion.div>
             ))}
 
             <div className="d-flex gap-2 justify-content-center">
                 <button onClick={addTest} className="btn btn-secondary">+ Añadir URL</button>
-                <button onClick={runTests} className="btn btn-info" disabled={loading}>{loading ? "Ejecutando..." : "Comenzar el test"}</button>
+                <button onClick={runTests} className="btn btn-info" disabled={loading}>
+                    {loading ? "Ejecutando..." : "Comenzar el test"}
+                </button>
                 <button onClick={clearResults} className="btn btn-dark">Borrar resultados</button>
             </div>
 
             {alertMessages.map((alert, index) => (
-                <motion.div key={index} className="alert alert-warning mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+                <motion.div
+                    key={index}
+                    className="alert alert-warning mt-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                >
                     {alert.message}
                 </motion.div>
             ))}
@@ -110,7 +141,13 @@ const filteredH2 = (data.h2Elements || []).filter(h2 => !excludedH2s.includes(h2
             {results.length > 0 && (
                 <motion.div className="mt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
                     {results.map((result, index) => (
-                        <motion.div key={index} className="card p-3 mb-3 shadow-sm" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.1 }}>
+                        <motion.div
+                            key={index}
+                            className="card p-3 mb-3 shadow-sm"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                        >
                             <h5 className="card-title">Título de la página: {result.title}</h5>
                             <p className="text-muted">Productos esperados: {result.expectedProducts}</p>
                             <h6>Productos encontrados:</h6>
