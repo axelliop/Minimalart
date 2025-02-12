@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { motion } from "framer-motion";
 
 export default function App() {
-    const [tests, setTests] = useState([{ url: "", expectedProducts: "" }]);
+    const [tests, setTests] = useState([{ url: "", expectedProducts: "", validateDiscount: false }]);
     const [results, setResults] = useState([]);
     const [alertMessages, setAlertMessages] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -22,7 +22,7 @@ export default function App() {
     };
 
     const addTest = () => {
-        setTests([...tests, { url: "", expectedProducts: "" }]);
+        setTests([...tests, { url: "", expectedProducts: "", validateDiscount: false }]);
     };
 
     const runTests = async () => {
@@ -34,7 +34,7 @@ export default function App() {
         const newAlerts = [];
 
         for (let i = 0; i < tests.length; i++) {
-            const { url, expectedProducts } = tests[i];
+            const { url, expectedProducts, validateDiscount } = tests[i];
 
             if (!url) continue;
 
@@ -42,7 +42,7 @@ export default function App() {
                 const response = await fetch("http://localhost:5000/run-test", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url, expectedProducts }),
+                    body: JSON.stringify({ url, expectedProducts, validateDiscount }),
                 });
 
                 const data = await response.json();
@@ -56,7 +56,6 @@ export default function App() {
                     });
                 }
 
-                // Nueva prueba: Verificar si la URL es accesible
                 if (!data.success) {
                     newAlerts.push({
                         index: i,
@@ -106,7 +105,7 @@ export default function App() {
                             className="form-control"
                         />
                     </div>
-                    <div>
+                    <div className="mb-2">
                         <input
                             type="number"
                             placeholder="Productos esperados"
@@ -114,6 +113,15 @@ export default function App() {
                             onChange={(e) => handleInputChange(index, "expectedProducts", e.target.value)}
                             className="form-control"
                         />
+                    </div>
+                    <div className="form-check">
+                        <input
+                            type="checkbox"
+                            className="form-check-input"
+                            checked={test.validateDiscount}
+                            onChange={(e) => handleInputChange(index, "validateDiscount", e.target.checked)}
+                        />
+                        <label className="form-check-label">Validar descuentos</label>
                     </div>
                 </motion.div>
             ))}
@@ -149,7 +157,6 @@ export default function App() {
                             transition={{ duration: 0.3, delay: index * 0.1 }}
                         >
                             <h5 className="card-title">Título de la página: {result.title}</h5>
-                            <p className="text-muted">Productos esperados: {result.expectedProducts}</p>
                             <h6>Productos encontrados:</h6>
                             <ul className="list-group">
                                 {result.h2Elements.length > 0 ? (
@@ -158,6 +165,16 @@ export default function App() {
                                     <li className="list-group-item text-muted">No se encontraron elementos H2</li>
                                 )}
                             </ul>
+                            {result.discountResults && result.discountResults.length > 0 && (
+                                <div className="mt-2">
+                                    <h6>Descuentos detectados:</h6>
+                                    <ul className="list-group">
+                                        {result.discountResults.map((discount, i) => (
+                                            <li key={i} className="list-group-item">{discount}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </motion.div>
                     ))}
                 </motion.div>
