@@ -1,10 +1,18 @@
 const express = require("express");
 const cors = require("cors");
 const playwright = require("playwright");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/screenshots", express.static(path.join(__dirname, "screenshots")));
+
+// Crear la carpeta de screenshots si no existe
+if (!fs.existsSync("screenshots")) {
+    fs.mkdirSync("screenshots");
+}
 
 // Tabla de referencia de imágenes a descuentos
 const DISCOUNT_LABELS = {
@@ -31,6 +39,8 @@ app.post("/run-test", async (req, res) => {
 
         let discountResults = [];
         let detectedDiscounts = [];
+        let unidentifiedDiscounts = [];
+        let screenshotPath = null;
 
         if (validateDiscount) {
             discountResults = await page.$$eval("span.berocket-label-user-image", spans => {
@@ -41,11 +51,20 @@ app.post("/run-test", async (req, res) => {
                 }).filter(url => url); // Filtramos valores nulos
             });
 
-            console.log("URLs de descuento detectadas:", discountResults);
+            detectedDiscounts = discountResults.map(src => {
+                const label = DISCOUNT_LABELS[src] || "otro tipo de label";
+                if (label === "otro tipo de label") {
+                    unidentifiedDiscounts.push(src);
+                }
+                return label;
+            });
 
-            detectedDiscounts = discountResults.map(src => DISCOUNT_LABELS[src] || "Descuento no identificado");
-
-            console.log("Descuentos extraídos:", detectedDiscounts);
+            // Si hay descuentos no identificados, tomar una captura de pantalla
+            if (unidentifiedDiscounts.length > 0) {
+                const timestamp = Date.now();
+                screenshotPath = `screenshots/snapshot_${timestamp}.png`;
+                await page.screenshot({ path: screenshotPath });
+            }
         }
 
         await browser.close();
@@ -55,6 +74,7 @@ app.post("/run-test", async (req, res) => {
             title,
             h2Elements,
             discountResults: detectedDiscounts,
+            screenshotPath: screenshotPath ? `/screenshots/${path.basename(screenshotPath)}` : null
         });
     } catch (error) {
         if (browser) await browser.close();
