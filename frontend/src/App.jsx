@@ -50,12 +50,7 @@ export default function App() {
                 const data = await response.json();
                 const filteredH2 = data.h2Elements.filter(h2 => !excludedH2s.includes(h2));
                 
-                const productsWithDiscounts = filteredH2.map((h2, index) => {
-                    const discount = data.discountResults[index] || "otro tipo de label";
-                    return `${h2} - ${discount}`;
-                });
-
-                newResults.push({ ...data, h2Elements: productsWithDiscounts, index: i });
+                newResults.push({ ...data, h2Elements: filteredH2, index: i });
 
                 if (expectedProducts && filteredH2.length !== parseInt(expectedProducts)) {
                     newAlerts.push({
@@ -156,7 +151,6 @@ export default function App() {
                             transition={{ duration: 0.3, delay: index * 0.1 }}
                         >
                             <h5 className="card-title">Título de la página: {result.title}</h5>
-                            <p className="text-muted">Productos esperados: {result.expectedProducts}</p>
                             <h6>Productos encontrados:</h6>
                             <ul className="list-group">
                                 {result.h2Elements.length > 0 ? (
@@ -165,12 +159,7 @@ export default function App() {
                                     <li className="list-group-item text-muted">No se encontraron elementos H2</li>
                                 )}
                             </ul>
-                            {result.screenshotPath && (
-                                <div className="mt-3">
-                                    <h6>Captura de pantalla:</h6>
-                                    <img src={`http://localhost:5000/${result.screenshotPath}`} alt="Captura" className="img-fluid" />
-                                </div>
-                            )}
+                          
                         </motion.div>
                     ))}
                 </motion.div>
