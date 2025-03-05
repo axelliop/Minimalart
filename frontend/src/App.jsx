@@ -49,7 +49,7 @@ export default function App() {
 
                 const data = await response.json();
                 const filteredH2 = data.h2Elements.filter(h2 => !excludedH2s.includes(h2));
-                
+
                 newResults.push({ ...data, h2Elements: filteredH2, index: i });
 
                 if (expectedProducts && filteredH2.length !== parseInt(expectedProducts)) {
@@ -143,23 +143,13 @@ export default function App() {
             {results.length > 0 && (
                 <motion.div className="mt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
                     {results.map((result, index) => (
-                        <motion.div
-                            key={index}
-                            className="card p-3 mb-3 shadow-sm"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: index * 0.1 }}
-                        >
+                        <motion.div key={index} className="card p-3 mb-3 shadow-sm">
                             <h5 className="card-title">Título de la página: {result.title}</h5>
                             <h6>Productos encontrados:</h6>
                             <ul className="list-group">
-                                {result.h2Elements.length > 0 ? (
-                                    result.h2Elements.map((h2, i) => <li key={i} className="list-group-item">{h2}</li>)
-                                ) : (
-                                    <li className="list-group-item text-muted">No se encontraron elementos H2</li>
-                                )}
+                                {result.h2Elements.map((h2, i) => <li key={i} className="list-group-item">{h2}</li>)}
                             </ul>
-                          
+                            {result.screenshot && <img src={`http://localhost:5000${result.screenshot}`} alt="Captura de pantalla" className="img-fluid mt-3" />}
                         </motion.div>
                     ))}
                 </motion.div>

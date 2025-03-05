@@ -8,6 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Crear carpeta de screenshots si no existe
+const screenshotsDir = path.join(__dirname, "screenshots");
+if (!fs.existsSync(screenshotsDir)) {
+    fs.mkdirSync(screenshotsDir);
+}
+
 app.post("/run-test", async (req, res) => {
     const { url, expectedProducts } = req.body;
     if (!url) {
@@ -21,12 +27,15 @@ app.post("/run-test", async (req, res) => {
         const page = await context.newPage();
         await page.goto(url, { timeout: 30000 });
 
+        // Esperar 3 segundos para que los productos terminen de cargar
+        await page.waitForTimeout(3000);
+
         const title = await page.title();
         const h2Elements = await page.$$eval("h2", elements => elements.map(el => el.textContent.trim()));
 
         let screenshotPath = null;
         if (expectedProducts && h2Elements.length !== parseInt(expectedProducts)) {
-            screenshotPath = path.join(__dirname, `screenshot_${Date.now()}.png`);
+            screenshotPath = path.join(screenshotsDir, `screenshot_${Date.now()}.png`);
             await page.screenshot({ path: screenshotPath, fullPage: true });
         }
 
@@ -44,7 +53,8 @@ app.post("/run-test", async (req, res) => {
     }
 });
 
-app.use("/screenshots", express.static(path.join(__dirname)));
+// Servir capturas de pantalla correctamente
+app.use("/screenshots", express.static(screenshotsDir));
 
 const PORT = 5000;
 app.listen(PORT, () => {
