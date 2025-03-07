@@ -27,8 +27,16 @@ app.post("/run-test", async (req, res) => {
         const page = await context.newPage();
         await page.goto(url, { timeout: 30000 });
 
-        // Esperar 3 segundos para que los productos terminen de cargar
-        await page.waitForTimeout(3000);
+        // Esperar 5 segundos para que la página cargue completamente
+        await page.waitForTimeout(5000);
+
+        // Ajustar el viewport al tamaño total del contenido de la página
+        const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
+        await page.setViewportSize({ width: 1280, height: bodyHeight });
+
+        // Hacer scroll hasta el final de la página para cargar todo el contenido
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+        await page.waitForTimeout(2000);
 
         const title = await page.title();
         const h2Elements = await page.$$eval("h2", elements => elements.map(el => el.textContent.trim()));
