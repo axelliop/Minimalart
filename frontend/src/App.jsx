@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 export default function App() {
     const [tests, setTests] = useState([{ url: "", expectedProducts: "" }]);
     const [results, setResults] = useState([]);
-    const [alertMessages, setAlertMessages] = useState([]);
     const [loading, setLoading] = useState(false);
 
     const excludedH2s = [
@@ -30,10 +29,8 @@ export default function App() {
     const runTests = async () => {
         setLoading(true);
         setResults([]);
-        setAlertMessages([]);
 
         const newResults = [];
-        const newAlerts = [];
 
         for (let i = 0; i < tests.length; i++) {
             const { url, expectedProducts } = tests[i];
@@ -50,34 +47,25 @@ export default function App() {
                 const data = await response.json();
                 const filteredH2 = data.h2Elements.filter(h2 => !excludedH2s.includes(h2));
 
-                newResults.push({ ...data, h2Elements: filteredH2, index: i });
-
-                if (expectedProducts && filteredH2.length !== parseInt(expectedProducts)) {
-                    newAlerts.push({
-                        index: i,
-                        message: `⚠️ ¡Atención! En la URL ${url}, se esperaban ${expectedProducts} productos, pero se encontraron ${filteredH2.length}.`,
-                    });
-                }
-
-                if (!data.success) {
-                    newAlerts.push({
-                        index: i,
-                        message: `❌ Error: La URL ${url} no está disponible o tardó demasiado en cargar.`,
-                    });
-                }
+                const mismatch = expectedProducts && filteredH2.length !== parseInt(expectedProducts);
+                newResults.push({ 
+                    ...data, 
+                    h2Elements: filteredH2, 
+                    index: i, 
+                    mismatch, 
+                    alertMessage: mismatch ? `⚠️ ¡Atención! Se esperaban ${expectedProducts} productos, pero se encontraron ${filteredH2.length}.` : ""
+                });
             } catch (error) {
                 console.error("Error en el test ejecutado:", error);
             }
         }
 
         setResults(newResults);
-        setAlertMessages(newAlerts);
         setLoading(false);
     };
 
     const clearResults = () => {
         setResults([]);
-        setAlertMessages([]);
     };
 
     return (
@@ -128,23 +116,19 @@ export default function App() {
                 <button onClick={clearResults} className="btn btn-dark">Borrar resultados</button>
             </div>
 
-            {alertMessages.map((alert, index) => (
-                <motion.div
-                    key={index}
-                    className="alert alert-warning mt-3"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    {alert.message}
-                </motion.div>
-            ))}
-
             {results.length > 0 && (
                 <motion.div className="mt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
                     {results.map((result, index) => (
-                        <motion.div key={index} className="card p-3 mb-3 shadow-sm">
+                        <motion.div 
+                            key={index} 
+                            className={`card p-3 mb-3 shadow-sm ${result.mismatch ? "border-danger" : "border-success"}`}
+                        >
                             <h5 className="card-title">Título de la página: {result.title}</h5>
+                            {result.mismatch && (
+                                <div className="alert alert-warning">
+                                    {result.alertMessage}
+                                </div>
+                            )}
                             <h6>Productos encontrados:</h6>
                             <ul className="list-group">
                                 {result.h2Elements.map((h2, i) => <li key={i} className="list-group-item">{h2}</li>)}
